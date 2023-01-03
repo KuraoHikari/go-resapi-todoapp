@@ -5,12 +5,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 type JWTService interface {
 	GenerateToken(userID string) string
-	ValidateToken(token string) (*jwt.Token, error)
+	ValidateToken(token string, ctx *gin.Context) (*jwt.Token)
 }
 
 type jwtCustomClaim struct {
@@ -43,11 +44,6 @@ func (j *jwtService) GenerateToken(UserID string) string {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer: j.issuer,
 		},
-		// jwt.StandardClaims{
-		// 	ExpiresAt: time.Now().AddDate(1,0,0).Unix(),
-		// 	Issuer: j.issuer,
-		// 	IssuedAt: time.Now().Unix(),
-		// },
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(j.secretKey))
@@ -57,14 +53,19 @@ func (j *jwtService) GenerateToken(UserID string) string {
 	return t
 }
 
-func (j *jwtService) ValidateToken(token string) (*jwt.Token, error){
-	return jwt.Parse(token, func(t_ *jwt.Token)(interface{}, error){
+func (j *jwtService) ValidateToken(token string, ctx *gin.Context) (*jwt.Token){
+	t, err := jwt.Parse(token, func(t_ *jwt.Token) (interface{}, error) {
 		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
-			// return nil, errors.New("that's not even a token")
-			return nil, fmt.Errorf("unexpected signing method %v",  t_.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method %v", t_.Header["alg"])
 		}
 		return []byte(j.secretKey), nil
 	})
+
+	if err != nil {
+		return nil
+	}
+
+	return t
 	// tokenRes , err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 	// 	return []byte(j.secretKey), nil
 	// })
