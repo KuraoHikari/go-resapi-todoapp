@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type TodoHandler interface {
+type TodoController interface {
 	GetAllTodo(ctx *gin.Context)
 	CreateTodo(ctx *gin.Context)
 	UpdateTodo(ctx *gin.Context)
@@ -20,19 +20,19 @@ type TodoHandler interface {
 	FindOneTodoByID(ctx *gin.Context)
 }
 
-type todoHandler struct {
+type todoController struct {
 	todoService service.TodoService
 	jwtService  helper.JWTService
 }
 
-func NewTodoHandler(todoService service.TodoService, jwtService helper.JWTService) TodoHandler {
-	return &todoHandler{
+func NewTodoController(todoService service.TodoService, jwtService helper.JWTService) TodoController {
+	return &todoController{
 		todoService: todoService,
 		jwtService:  jwtService,
 	}
 }
 
-func (c *todoHandler) GetAllTodo(ctx *gin.Context) {
+func (c *todoController) GetAllTodo(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token := c.jwtService.ValidateToken(authHeader, ctx)
 	claims := token.Claims.(jwt.MapClaims)
@@ -49,7 +49,7 @@ func (c *todoHandler) GetAllTodo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (c *todoHandler) CreateTodo(ctx *gin.Context) {
+func (c *todoController) CreateTodo(ctx *gin.Context) {
 	var createTodoReq dto.CreateTodoRequest
 	err := ctx.ShouldBind(&createTodoReq)
 
@@ -76,7 +76,7 @@ func (c *todoHandler) CreateTodo(ctx *gin.Context) {
 
 }
 
-func (c *todoHandler) FindOneTodoByID(ctx *gin.Context) {
+func (c *todoController) FindOneTodoByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	res, err := c.todoService.FindOneTodoByID(id)
@@ -90,7 +90,7 @@ func (c *todoHandler) FindOneTodoByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (c *todoHandler) DeleteTodo(ctx *gin.Context) {
+func (c *todoController) DeleteTodo(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	authHeader := ctx.GetHeader("Authorization")
@@ -108,7 +108,7 @@ func (c *todoHandler) DeleteTodo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (c *todoHandler) UpdateTodo(ctx *gin.Context) {
+func (c *todoController) UpdateTodo(ctx *gin.Context) {
 	updateTodoRequest := dto.UpdateTodoRequest{}
 	err := ctx.ShouldBind(&updateTodoRequest)
 

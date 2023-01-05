@@ -12,29 +12,29 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type UserHandler interface {
+type UserController interface {
 	Login(ctx *gin.Context)
 	Register(ctx *gin.Context)
 	Profile(ctx *gin.Context)
 	Update(ctx *gin.Context)
 }
 
-type userHandler struct {
+type userController struct {
 	jwtService  helper.JWTService
 	userService service.UserService
 }
 
-func NewUserHandler(
+func NewUserController(
 	jwtService helper.JWTService,
 	userService service.UserService,
-) UserHandler {
-	return &userHandler{	
+) UserController {
+	return &userController{	
 		jwtService:  jwtService,
 		userService: userService,
 	}
 }
 
-func (c *userHandler) Login(ctx *gin.Context) {
+func (c *userController) Login(ctx *gin.Context) {
 	var loginRequest dto.LoginRequest
 	err := ctx.ShouldBind(&loginRequest)
 
@@ -60,7 +60,7 @@ func (c *userHandler) Login(ctx *gin.Context) {
 
 }
 
-func (c *userHandler) Register(ctx *gin.Context) {
+func (c *userController) Register(ctx *gin.Context) {
 	var registerRequest dto.RegisterRequest
 
 	err := ctx.ShouldBind(&registerRequest)
@@ -84,7 +84,7 @@ func (c *userHandler) Register(ctx *gin.Context) {
 
 }
 
-func (c *userHandler) getUserIDByHeader(ctx *gin.Context) string {
+func (c *userController) getUserIDByHeader(ctx *gin.Context) string {
 	header := ctx.GetHeader("Authorization")
 	token := c.jwtService.ValidateToken(header, ctx)
 
@@ -99,7 +99,7 @@ func (c *userHandler) getUserIDByHeader(ctx *gin.Context) string {
 	return id
 }
 
-func (c *userHandler) Update(ctx *gin.Context) {
+func (c *userController) Update(ctx *gin.Context) {
 	var updateUserRequest dto.UpdateUserRequest
 
 	err := ctx.ShouldBind(&updateUserRequest)
@@ -132,7 +132,7 @@ func (c *userHandler) Update(ctx *gin.Context) {
 
 }
 
-func (c *userHandler) Profile(ctx *gin.Context) {
+func (c *userController) Profile(ctx *gin.Context) {
 	header := ctx.GetHeader("Authorization")
 	token := c.jwtService.ValidateToken(header, ctx)
 
